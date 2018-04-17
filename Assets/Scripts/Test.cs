@@ -17,6 +17,8 @@ public class Test : MonoBehaviour {
     void Start () {
 
         Register();
+
+        CreatePlayer();
 	}
 	
     public async void Register()
@@ -26,6 +28,16 @@ public class Test : MonoBehaviour {
             Debug.Log("注册成功");
         else
             Debug.Log("注册失败");
+    }
+
+    public async void CreatePlayer()
+    {
+        var result = await DataMgr.instance.CreatePlayer("recho");
+
+        if (result)
+            Debug.Log("创建角色成功");
+        else
+            Debug.Log("创建角色失败");
     }
 
 	// Update is called once per frame

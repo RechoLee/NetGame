@@ -1,10 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 using MySql.Data.Common;
 using MySql.Data.MySqlClient;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.IO;
 
 public class DataMgr
 {
@@ -106,6 +110,54 @@ public class DataMgr
         catch (System.Exception e)
         {
             Debug.Log(e.Message);
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 创建角色
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public async Task<bool> CreatePlayer(string id)
+    {
+        //防止sql注入
+        if (!IsSafeStr(id))
+            return false;
+
+        //序列化
+        PlayerData playerData = new PlayerData();
+
+        IFormatter formatter = new BinaryFormatter();
+        MemoryStream stream = new MemoryStream();
+        try
+        {
+            formatter.Serialize(stream, playerData);
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            return false;
+        }
+        //从流中获取byte
+        byte[] byteArr = stream.ToArray();
+        stream.Close();
+
+        //写入数据库
+        string cmdStr = $"insert into player set id='{id}',data=@data;";
+        MySqlCommand sqlCommand = new MySqlCommand(cmdStr, sqlConn);
+        //使用参数方式 byte不好使用sql语句
+        sqlCommand.Parameters.Add("@data", MySqlDbType.Blob);
+        sqlCommand.Parameters["@data"].Value = byteArr;
+
+        try
+        {
+            var result = await sqlCommand.ExecuteNonQueryAsync();
+            return result == 1;
+        }
+        catch (Exception e)
+        {
+            Debug.Log($"创建角色失败,{e.Message}");
             return false;
         }
     }
