@@ -10,12 +10,13 @@ public class DataMgr
 {
     MySqlConnection sqlConn;
 
-    public DataMgr instance;
+    
+
+    public static DataMgr instance;
 
     public DataMgr()
     {
         instance = this;
-
     }
 
     /// <summary>
@@ -29,7 +30,7 @@ public class DataMgr
 
         try
         {
-           await sqlConn.OpenAsync();
+            await sqlConn.OpenAsync();
         }
         catch (System.Exception e)
         {
@@ -62,9 +63,7 @@ public class DataMgr
 
             bool hasRows = reader.HasRows;
             reader.Close();
-            return hasRows;
-
-
+            return !hasRows;
         }
         catch (System.Exception)
         {
