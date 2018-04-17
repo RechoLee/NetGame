@@ -52,6 +52,12 @@ public class DataMgr
         return !Regex.IsMatch(str,@"[-|;|,|\/|\(|\)|\[|\]|\{|\}|\%|\*|\!|\']");
     }
 
+
+    /// <summary>
+    /// 判断是否能注册
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<bool> CanRegister(string id)
     {
         //判断防止sql注入
@@ -158,6 +164,37 @@ public class DataMgr
         catch (Exception e)
         {
             Debug.Log($"创建角色失败,{e.Message}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 根据id和pw检查登陆信息
+    /// </summary>
+    /// <param name="id"></param>
+    /// <param name="pw"></param>
+    /// <returns></returns>
+    public async Task<bool> CheckPassword(string id ,string pw)
+    {
+        //检查sql注入
+        if (!IsSafeStr(id) || !IsSafeStr(pw))
+            return false;
+
+        //查询数据库
+        string cmdStr = $"select * from user where id='{id}' and pw='{pw}';";
+        MySqlCommand sqlCommand = new MySqlCommand(cmdStr, sqlConn);
+
+        try
+        {
+            var reader =await sqlCommand.ExecuteReaderAsync();
+            bool hasData = reader.HasRows;
+            reader.Close();
+
+            return hasData;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
             return false;
         }
     }
