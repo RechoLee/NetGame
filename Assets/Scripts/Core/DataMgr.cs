@@ -199,6 +199,11 @@ public class DataMgr
         }
     }
 
+    /// <summary>
+    /// 获取角色
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public async Task<PlayerData> GetPlayerData(string id)
     {
         PlayerData playerData = null;
@@ -256,6 +261,50 @@ public class DataMgr
         {
             Debug.Log(e.Message);
             return playerData;
+        }
+    }
+
+    /// <summary>
+    /// 保存玩家数据
+    /// </summary>
+    /// <param name="player"></param>
+    /// <returns></returns>
+    public async Task<bool> SavePlayer(Player player)
+    {
+        string id = player.id;
+        PlayerData playerData = player.data;
+
+        //序列化
+        IFormatter formatter = new BinaryFormatter();
+        MemoryStream stream = new MemoryStream();
+        try
+        {
+            formatter.Serialize(stream, playerData);
+        }
+        catch ( Exception e)
+        {
+            Debug.Log(e.Message);
+
+            return false;
+        }
+        //输出到byte数组
+        byte[] byteArr = stream.ToArray();
+
+        //更新数据库信息
+        string cmdStr = $"update player set data=@data where id='{id}'";
+        MySqlCommand sqlCommand = new MySqlCommand(cmdStr, sqlConn);
+        sqlCommand.Parameters.Add("@data", MySqlDbType.Blob);
+        sqlCommand.Parameters["@data"].Value = byteArr;
+
+        try
+        {
+            var result = await sqlCommand.ExecuteNonQueryAsync();
+            return result == 1;
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            return false;
         }
     }
 }

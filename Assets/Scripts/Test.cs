@@ -22,7 +22,9 @@ public class Test : MonoBehaviour {
 
         //CheckLogin();
 
-        GetPlayerData();
+        //GetPlayerData();
+
+        SavePlayer();
 	}
 	
     public async void Register()
@@ -69,6 +71,36 @@ public class Test : MonoBehaviour {
         {
             Debug.Log("不能读取玩家数据");
         }
+    }
+
+    public async void SavePlayer()
+    {
+        Player player = new Player
+        {
+            id = "recho",
+            data = new PlayerData {score=3000 }
+        };
+
+        var result = await DataMgr.instance.SavePlayer(player);
+
+        if(result)
+        {
+            Debug.Log("更新成功");
+            var result_PD = await DataMgr.instance.GetPlayerData("recho");
+            if(result_PD!=null)
+            {
+                Debug.Log($"玩家分数为：{result_PD.score}");
+            }
+            else
+            {
+                Debug.Log("获取玩家数据失败");
+            }
+        }
+        else
+        {
+            Debug.Log("更新失败");
+        }
+
     }
 
 	// Update is called once per frame
