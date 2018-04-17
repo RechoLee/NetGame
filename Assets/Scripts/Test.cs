@@ -20,7 +20,9 @@ public class Test : MonoBehaviour {
 
         //CreatePlayer();
 
-        CheckLogin();
+        //CheckLogin();
+
+        GetPlayerData();
 	}
 	
     public async void Register()
@@ -52,6 +54,21 @@ public class Test : MonoBehaviour {
             Debug.Log("登陆成功");
         else
             Debug.Log("请检查用户名和密码");
+    }
+
+    public async void GetPlayerData()
+    {
+        var result = await DataMgr.instance.GetPlayerData("recho");
+
+        if (result != null)
+        {
+            PlayerData playerData = result as PlayerData;
+            Debug.Log($"玩家recho的分数为:{playerData.score}");
+        }
+        else
+        {
+            Debug.Log("不能读取玩家数据");
+        }
     }
 
 	// Update is called once per frame
