@@ -10,4 +10,6 @@ public class Player
     public Conn conn;
     //角色数据
     public PlayerData data;
+    //玩家的临时数据
+    public PlayerTempData tempData;
 }
