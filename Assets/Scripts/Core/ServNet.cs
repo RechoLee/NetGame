@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Timers;
 using UnityEngine;
 
 /// <summary>
@@ -20,6 +21,10 @@ public class ServNet
     public int maxConn = 50;
     //单例
     public static ServNet instance;
+
+    //定时器
+    public Timer timer = new Timer(1000);
+    public long heartBeatTime = 180;//心跳时间s
 
     //构造函数
     public ServNet()
@@ -73,7 +78,51 @@ public class ServNet
         listenfd.Listen(maxConn);
         //开启接受连接
         listenfd.BeginAccept(AccetpCb, null);
+
+        //定时器
+        timer.Enabled = true;
+        timer.Elapsed += Timer_Elapsed;
+        timer.AutoReset = false;
+
         Debug.Log($"服务器启动成功,绑定ip为:{host},绑定地址为{port}");
+    }
+
+    /// <summary>
+    /// 定时器时间到了执行回调函数
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Timer_Elapsed(object sender, ElapsedEventArgs e)
+    {
+        //调用心跳函数
+        HeartBeat();
+        timer.Start();
+    }
+
+    /// <summary>
+    /// 心跳函数,遍历所有连接，剔除死连接
+    /// </summary>
+    public void HeartBeat()
+    {
+        Debug.Log("主定时器执行");
+        long timeNow = Sys.GetTimeStamp();
+
+        //遍历所有连接
+        for (int i = 0; i < conns.Length; i++)
+        {
+            Conn conn = conns[i];
+            if (conn == null || conn.isUse == false)
+                continue;
+
+            if(timeNow-conn.lastTickTime>heartBeatTime)
+            {
+                Debug.Log($"心跳断开连接---{conn.socket.RemoteEndPoint.ToString()}");
+                lock (conn)
+                {
+                    conn.Close();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -173,6 +222,14 @@ public class ServNet
         //TODO:
         string msg = Encoding.UTF8.GetString(conn.readBuff, sizeof(Int32), conn.msgLength);
         Debug.Log($"收到了{conn.socket.RemoteEndPoint.ToString()}的消息，内容为：{msg}");
+
+        //判断是否为心跳协议，暂时用if处理
+        //重置conn的上次心跳时间
+        //TODO:
+        if(msg.ToUpper().Equals("HEARTBEAT"))
+        {
+            conn.lastTickTime = Sys.GetTimeStamp();
+        }
 
         //发送给xxx，待实现
         //TODO:
