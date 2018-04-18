@@ -220,20 +220,14 @@ public class ServNet
 
         //将消息转译出来并处理
         //TODO:
-        string msg = Encoding.UTF8.GetString(conn.readBuff, sizeof(Int32), conn.msgLength);
-        Debug.Log($"收到了{conn.socket.RemoteEndPoint.ToString()}的消息，内容为：{msg}");
+        //string msg = Encoding.UTF8.GetString(conn.readBuff, sizeof(Int32), conn.msgLength);
+        ProtocolStr protocol = new ProtocolStr();
+        protocol = protocol.Decode(conn.readBuff,sizeof(Int32),conn.msgLength) as ProtocolStr;
+        Debug.Log($"收到了{conn.socket.RemoteEndPoint.ToString()}的消息，内容为：{protocol.str}");
 
-        //判断是否为心跳协议，暂时用if处理
+        //判断是否为心跳协议 交油HandleMsg方法处理
         //重置conn的上次心跳时间
-        //TODO:
-        if(msg.ToUpper().Equals("HEARTBEAT"))
-        {
-            conn.lastTickTime = Sys.GetTimeStamp();
-        }
-
-        //发送给xxx，待实现
-        //TODO:
-        Send(conn, msg);
+        HandleMsg(conn,protocol);
 
         //清除已经处理的消息
         int remainMsgCount = conn.buffCount - sizeof(Int32) - conn.msgLength;//获取剩余未处理消息长度
@@ -246,6 +240,36 @@ public class ServNet
         {
             ProcessData(conn);
         }
+    }
+
+    /// <summary>
+    /// 处理消息
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <param name="protocol"></param>
+    private void HandleMsg(Conn conn,ProtocolBase protocol)
+    {
+        string name = protocol.GetName();
+        Debug.Log($"收到协议：{name}");
+
+        if (name.ToUpper().Equals("HEARTBEAT"))
+        {
+            conn.lastTickTime = Sys.GetTimeStamp();
+        }
+        
+        //echo
+        Send(conn, protocol);
+    }
+
+    /// <summary>
+    /// 发送消息
+    /// </summary>
+    /// <param name="conn">连接对象</param>
+    /// <param name="protocol">协议</param>
+    public void Send(Conn conn,ProtocolBase protocol)
+    {
+
+
     }
 
 

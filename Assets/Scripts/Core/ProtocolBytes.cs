@@ -153,5 +153,45 @@ public class ProtocolBytes : ProtocolBase
         int end=0;
         return GetInt(start, ref end);
     }
+
+    /// <summary>
+    /// 添加float数据
+    /// </summary>
+    /// <param name="num"></param>
+    public void AddFloat(float num)
+    {
+        byte[] numBytes = BitConverter.GetBytes(num);
+        if (bytes == null)
+            bytes = numBytes;
+        else
+            bytes = bytes.Concat(numBytes).ToArray();
+    }
+
+    /// <summary>
+    /// 获取Float数据
+    /// </summary>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns>float? 为Single结构体</returns>
+    public float? GetFloat(int start,ref int end)
+    {
+        if (bytes == null)
+            return null;
+        if (bytes.Length < start + sizeof(float))
+            return null;
+        end = start + sizeof(Single);
+        return BitConverter.ToSingle(bytes, start);
+    }
+
+    /// <summary>
+    /// 获取float重载函数
+    /// </summary>
+    /// <param name="start"></param>
+    /// <returns></returns>
+    public float? GetFloat(int start)
+    {
+        int end=0;
+        return GetFloat(start, ref end);
+    }
 }
 
