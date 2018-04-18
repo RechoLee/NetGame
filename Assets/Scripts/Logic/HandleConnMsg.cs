@@ -60,4 +60,147 @@ public partial class HandleConnMsg
         //回发协议
         conn.Send(protocol);
     }
+
+    /// <summary>
+    /// 协议： Login|id|pw
+    /// 客户端登陆功能协议处理方法
+    /// 1.解析协议中的用户名和密码
+    /// 2.验证
+    /// 3.将已登陆的下线
+    /// 4.读取数据
+    /// 5.事件触发
+    /// 6.放回Login协议 Login|-1/0
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <param name="protocolBase"></param>
+    public async void MsgLoginAsync(Conn conn,ProtocolBase protocolBase)
+    {
+        //获取协议数据
+        int start = 0;
+        ProtocolBytes protocol = protocolBase as ProtocolBytes;
+        string protoName = protocol.GetString(start, ref start);
+        string id = protocol.GetString(start,ref start);
+        string pw = protocol.GetString(start, ref start);
+        Debug.Log($"用户：{id}请求登陆");
+
+        //构建返回的Login协议
+        protocol = new ProtocolBytes();
+        protocol.AddString("Login");
+
+        //判断登陆信息正确与否
+        var resultCheck =await DataMgr.instance.CheckPasswordAsync(id, pw);
+        if (!resultCheck)
+        {
+            //验证失败
+            protocol.AddInt(-1);
+            conn.Send(protocol);
+            return;
+        }
+        else
+        {
+            //验证成功
+            protocol.AddInt(0);
+        }
+
+        //获取玩家数据初始化玩家
+        var playerData =await DataMgr.instance.GetPlayerDataAsync(id);
+
+        if(playerData==null)
+        {
+            protocol.AddInt(-1);
+            conn.Send(protocol);
+            return;
+        }
+
+        conn.player = new Player(id, conn) {data=playerData };
+
+        //事件触发
+        ServNet.instance.handlePlayerEvent.OnLogin(conn.player);
+
+        //返回登陆成功的协议
+        protocol.AddInt(0);
+        conn.Send(protocol);
+    }
+
+    /// <summary>
+    /// 协议： Login|id|pw
+    /// 客户端登陆功能协议处理方法
+    /// 1.解析协议中的用户名和密码
+    /// 2.验证
+    /// 3.将已登陆的下线
+    /// 4.读取数据
+    /// 5.事件触发
+    /// 6.放回Login协议 Login|-1/0
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <param name="protocolBase"></param>
+    public void MsgLogin(Conn conn, ProtocolBase protocolBase)
+    {
+        //获取协议数据
+        int start = 0;
+        ProtocolBytes protocol = protocolBase as ProtocolBytes;
+        string protoName = protocol.GetString(start, ref start);
+        string id = protocol.GetString(start, ref start);
+        string pw = protocol.GetString(start, ref start);
+        Debug.Log($"用户：{id}请求登陆");
+
+        //构建返回的Login协议
+        protocol = new ProtocolBytes();
+        protocol.AddString("Login");
+
+        //判断登陆信息正确与否
+        if (!DataMgr.instance.CheckPassword(id, pw))
+        {
+            //验证失败
+            protocol.AddInt(-1);
+            conn.Send(protocol);
+            return;
+        }
+        else
+        {
+            //验证成功
+            protocol.AddInt(0);
+        }
+
+        //获取玩家数据初始化玩家
+        var playerData =DataMgr.instance.GetPlayerData(id);
+
+        if (playerData == null)
+        {
+            protocol.AddInt(-1);
+            conn.Send(protocol);
+            return;
+        }
+
+        conn.player = new Player(id, conn) { data = playerData };
+
+        //事件触发
+        ServNet.instance.handlePlayerEvent.OnLogin(conn.player);
+
+        //返回登陆成功的协议
+        protocol.AddInt(0);
+        conn.Send(protocol);
+    }
+
+    /// <summary>
+    /// 退出的消息
+    /// Logout|
+    /// </summary>
+    /// <param name="conn"></param>
+    /// <param name="protocolBase"></param>
+    public void MsgLogout(Conn conn,ProtocolBase protocolBase)
+    {
+        ProtocolBytes protocol = protocolBase as ProtocolBytes;
+        protocol.AddString("Logout");
+        protocol.AddInt(0);
+        conn.Send(protocol);
+        if (conn.player==null)
+        {
+            conn.Close();
+        }
+        else
+        {
+            conn.player.Logout();
+        }
+    }
 }

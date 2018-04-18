@@ -346,11 +346,11 @@ public class DataMgr
     }
 
     /// <summary>
-    /// 获取角色
+    /// 获取角色，异步方法
     /// </summary>
     /// <param name="id"></param>
     /// <returns></returns>
-    public async Task<PlayerData> GetPlayerData(string id)
+    public async Task<PlayerData> GetPlayerDataAsync(string id)
     {
         PlayerData playerData = null;
         //防止sql注入
@@ -404,6 +404,72 @@ public class DataMgr
             return playerData;
         }
         catch ( Exception e)
+        {
+            Debug.Log(e.Message);
+            return playerData;
+        }
+    }
+
+
+    /// <summary>
+    /// 获取玩家数据
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
+    public PlayerData GetPlayerData(string id)
+    {
+        PlayerData playerData = null;
+        //防止sql注入
+        if (!IsSafeStr(id))
+            return playerData;
+
+        //查询
+        string cmdStr = $"select * from player where id='{id}';";
+        MySqlCommand sqlCommand = new MySqlCommand(cmdStr, sqlConn);
+
+        byte[] buffer;
+        try
+        {
+            var reader =sqlCommand.ExecuteReader();
+            bool isHas = reader.HasRows;
+            if (!isHas)
+            {
+                reader.Close();
+                return playerData;
+            }
+            //读取指针前移动
+            bool isReader =reader.Read();
+
+            if (!isReader)
+            {
+                reader.Close();
+                return playerData;
+            }
+
+            //通过这种方法先获取长度
+            long length = reader.GetBytes(1, 0, null, 0, 0);
+            buffer = new byte[length];
+
+            //读取byte
+            reader.GetBytes(1, 0, buffer, 0, (int)length);
+            reader.Close();
+        }
+        catch (Exception e)
+        {
+            Debug.Log(e.Message);
+            return playerData;
+        }
+
+        //反序列化
+        MemoryStream stream = new MemoryStream(buffer);
+
+        try
+        {
+            IFormatter formatter = new BinaryFormatter();
+            playerData = formatter.Deserialize(stream) as PlayerData;
+            return playerData;
+        }
+        catch (Exception e)
         {
             Debug.Log(e.Message);
             return playerData;
