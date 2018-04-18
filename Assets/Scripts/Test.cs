@@ -31,7 +31,7 @@ public class Test : MonoBehaviour {
 	
     public async void Register()
     {
-        var result =await DataMgr.instance.Register("xiaoming","123456");
+        var result =await DataMgr.instance.RegisterAsync("xiaoming","123456");
         if (result)
             Debug.Log("注册成功");
         else
@@ -40,7 +40,7 @@ public class Test : MonoBehaviour {
 
     public async void CreatePlayer()
     {
-        var result = await DataMgr.instance.CreatePlayer("xiaoming");
+        var result = await DataMgr.instance.CreatePlayerAsync("xiaoming");
 
         if (result)
             Debug.Log("创建角色成功");
@@ -53,7 +53,7 @@ public class Test : MonoBehaviour {
     /// </summary>
     public async void CheckLogin()
     {
-        var result = await DataMgr.instance.CheckPassword("recho", "123456");
+        var result = await DataMgr.instance.CheckPasswordAsync("recho", "123456");
         if (result)
             Debug.Log("登陆成功");
         else
@@ -83,7 +83,7 @@ public class Test : MonoBehaviour {
             data = new PlayerData {score=3000 }
         };
 
-        var result = await DataMgr.instance.SavePlayer(player);
+        var result = await DataMgr.instance.SavePlayerAsync(player);
 
         if(result)
         {

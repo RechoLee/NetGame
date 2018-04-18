@@ -17,6 +17,11 @@ public class Player
     //玩家的临时数据
     public PlayerTempData tempData;
 
+    public Player()
+    {
+
+    }
+
     public Player(string _id, Conn _conn)
     {
         this.id = _id;
