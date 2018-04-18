@@ -262,6 +262,24 @@ public class ServNet
     }
 
     /// <summary>
+    /// 广播消息
+    /// </summary>
+    /// <param name="protocol"></param>
+    public void Broadcast(ProtocolBase protocol)
+    {
+        if (conns == null)
+            return;
+        for (int i = 0; i < conns.Length; i++)
+        {
+            if (conns[i].isUse == false || conns[i].player == null)
+                continue;
+
+            //发送消息
+            Send(conns[i],protocol);
+        }
+    }
+
+    /// <summary>
     /// 发送消息
     /// </summary>
     /// <param name="conn">连接对象</param>
