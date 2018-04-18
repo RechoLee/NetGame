@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
@@ -126,9 +128,10 @@ public class ServNet
                     return;
                 }
                 conn.buffCount += count;
+
                 //交给处理类
                 //TODO:
-                //ProcessData(conn);
+                ProcessData(conn);
                 //继续接收
                 conn.socket.BeginReceive(conn.readBuff, conn.buffCount, conn.BuffRemain(),SocketFlags.None,ReceiveCb, conn);
             }
@@ -138,6 +141,83 @@ public class ServNet
             }
         }
     }
+
+    /// <summary>
+    /// 对缓冲区消息处理函数
+    /// </summary>
+    /// <param name="conn"></param>
+    public void ProcessData(Conn conn)
+    {
+        //如果消息小于一定长度 直接不处理
+        if (conn.buffCount < sizeof(Int32))
+        {
+            Debug.Log("消息太短");
+            return;
+        }
+
+        //获取一个消息体的总长度
+        //Array类的静态方法，从字节数组copy
+        Array.Copy(conn.readBuff, conn.lenBytes, sizeof(Int32));
+        //字节转换函数
+        conn.msgLength = BitConverter.ToInt32(conn.lenBytes, 0);
+
+        //如果消息不完整则不处理
+        if (conn.buffCount < conn.msgLength + sizeof(Int32))
+        {
+            Debug.Log("消息不完整");
+            return;
+        }
+
+        //将消息转译出来并处理
+        //TODO:
+        string msg = Encoding.UTF8.GetString(conn.readBuff, sizeof(Int32), conn.msgLength);
+        Debug.Log($"收到了{conn.socket.RemoteEndPoint.ToString()}的消息，内容为：{msg}");
+
+        //发送给xxx，待实现
+        //TODO:
+        Send(conn, msg);
+
+        //清除已经处理的消息
+        int remainMsgCount = conn.buffCount - sizeof(Int32) - conn.msgLength;//获取剩余未处理消息长度
+        Array.Copy(conn.readBuff, sizeof(Int32) + conn.msgLength, conn.readBuff, 0, remainMsgCount);
+        conn.buffCount = remainMsgCount;
+
+
+        //递归调用处理
+        if (conn.buffCount > 0)
+        {
+            ProcessData(conn);
+        }
+    }
+
+
+    /// <summary>
+    /// 发送字符串的方法，对字符串进行组装，未进行粘包分包确保发送完成
+    /// </summary>
+    /// <param name="conn">连接对象</param>
+    /// <param name="str">发送的字符串</param>
+    public void Send(Conn conn, string str)
+    {
+        byte[] strBytes = Encoding.UTF8.GetBytes(str);
+        byte[] lengthBytes = BitConverter.GetBytes(strBytes.Length);
+
+        //byte拼接函数
+        //在Linq命名空间下
+        byte[] sendBuff = lengthBytes.Concat(strBytes).ToArray();
+
+        try
+        {
+            //没有异步回调函数
+            //TODO:
+            conn.socket.BeginSend(sendBuff, 0, sendBuff.Length, SocketFlags.None, null, null);
+        }
+        catch (Exception e)
+        {
+            Debug.Log($"发送字符串异常：{e.Message}");
+        }
+
+    }
+
 
     /// <summary>
     /// 关闭

@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
+using System.Text;
 using UnityEngine;
 
 /// <summary>
@@ -87,24 +89,40 @@ public class Conn
         isUse = false;
     }
 
-    /// <summary>
-    /// 对缓冲区消息处理函数
-    /// </summary>
-    /// <param name="conn"></param>
-    public void ProcessData(Conn conn)
-    {
-        //如果消息小于一定长度 直接不处理
-        if (conn.buffCount < sizeof(Int32))
-            return;
+   
 
-        //获取一个消息体的总长度
-        
+    /// <summary>
+    /// 发送字符串的方法，对字符串进行组装，未进行粘包分包确保发送完成
+    /// </summary>
+    /// <param name="conn">连接对象</param>
+    /// <param name="str">发送的字符串</param>
+    public void Send(Conn conn,string str)
+    {
+        byte[] strBytes = Encoding.UTF8.GetBytes(str);
+        byte[] lengthBytes = BitConverter.GetBytes(strBytes.Length);
+
+        //byte拼接函数
+        //在Linq命名空间下
+        byte[] sendBuff = lengthBytes.Concat(strBytes).ToArray();
+
+        try
+        {
+            //没有异步回调函数
+            //TODO:
+            conn.socket.BeginSend(sendBuff,0,sendBuff.Length,SocketFlags.None,null,null);
+        }
+        catch ( Exception e)
+        {
+            Debug.Log($"发送字符串异常：{e.Message}");
+        }
+
     }
 
     //发送协议
     //public void Send(ProtocolBase protocol)
     //{
-            //Servnet.instance.Send(this,protocol);
+    //    //TODO:
+    //    //Servnet.instance.Send(this, protocol);
     //}
 
     public void Test()
