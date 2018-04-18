@@ -24,7 +24,9 @@ public class Test : MonoBehaviour {
 
         //GetPlayerData();
 
-        SavePlayer();
+        //SavePlayer();
+
+        //DebugTimeStamp();
 	}
 	
     public async void Register()
@@ -103,8 +105,21 @@ public class Test : MonoBehaviour {
 
     }
 
+    /// <summary>
+    /// 测试时间戳
+    /// </summary>
+    public void DebugTimeStamp()
+    {
+        Debug.Log(Sys.GetTimeStamp());
+    }
+
 	// Update is called once per frame
 	void Update () {
-		
-	}
+    }
+
+    private void FixedUpdate()
+    {
+        //DebugTimeStamp();
+
+    }
 }

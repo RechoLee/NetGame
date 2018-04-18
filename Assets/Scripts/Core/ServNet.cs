@@ -127,8 +127,9 @@ public class ServNet
                     conn.Close();
                     return;
                 }
-                conn.buffCount += count;
 
+                //处理消息
+                conn.buffCount += count;
                 //交给处理类
                 //TODO:
                 ProcessData(conn);
