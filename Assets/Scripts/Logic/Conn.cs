@@ -90,14 +90,14 @@ public class Conn
         isUse = false;
     }
 
-   
-
-    //发送协议
-    //public void Send(ProtocolBase protocol)
-    //{
-    //    //TODO:
-    //    //Servnet.instance.Send(this, protocol);
-    //}
+    /// <summary>
+    /// 发送协议，实际是对ServNet中Send的封装
+    /// </summary>
+    /// <param name="protocol"></param>
+    public void Send(ProtocolBase protocol)
+    {
+        ServNet.instance.Send(this, protocol);
+    }
 
     public void Test()
     {

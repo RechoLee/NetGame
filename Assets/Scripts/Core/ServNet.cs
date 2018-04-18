@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Text;
 using System.Timers;
 using UnityEngine;
@@ -25,6 +26,14 @@ public class ServNet
     //定时器
     public Timer timer = new Timer(1000);
     public long heartBeatTime = 180;//心跳时间s
+
+    ///消息分发类的实例
+    //玩家事件处理类实例
+    public HandlePlayerEvent handlePlayerEvent = new HandlePlayerEvent();
+    //连接对象协议处理实例
+    public HandleConnMsg handleConnMsg = new HandleConnMsg();
+    //玩家协议处理实例
+    public HandlePlayerMsg handlePlayerMsg = new HandlePlayerMsg();
 
     //构造函数
     public ServNet()
@@ -116,7 +125,7 @@ public class ServNet
 
             if(timeNow-conn.lastTickTime>heartBeatTime)
             {
-                Debug.Log($"心跳断开连接---{conn.socket.RemoteEndPoint.ToString()}");
+                Debug.Log($"心跳断开连接---{conn.GetAddress()}");
                 lock (conn)
                 {
                     conn.Close();
@@ -172,7 +181,7 @@ public class ServNet
                 if(count<0)
                 {
                     //断开 连接
-                    Debug.Log($"{conn.socket.RemoteEndPoint.ToString()}---断开连接---");
+                    Debug.Log($"{conn.GetAddress()}---断开连接---");
                     conn.Close();
                     return;
                 }
@@ -223,7 +232,7 @@ public class ServNet
         //string msg = Encoding.UTF8.GetString(conn.readBuff, sizeof(Int32), conn.msgLength);
         ProtocolStr protocol = new ProtocolStr();
         protocol = protocol.Decode(conn.readBuff,sizeof(Int32),conn.msgLength) as ProtocolStr;
-        Debug.Log($"收到了{conn.socket.RemoteEndPoint.ToString()}的消息，内容为：{protocol.str}");
+        Debug.Log($"收到了{conn.GetAddress()}的消息，内容为：{protocol.str}");
 
         //判断是否为心跳协议 交油HandleMsg方法处理
         //重置conn的上次心跳时间
@@ -252,7 +261,35 @@ public class ServNet
         string name = protocol.GetName();
         Debug.Log($"收到协议：{name}");
 
-        if (name.ToUpper().Equals("HEARTBEAT"))
+        ///使用反射来根据协议名称找到对应方法调用
+        string methodName = "Msg" + name;
+        if(conn.player==null||name.ToLower().Equals("heartbeat")||name.ToLower().Equals("logout"))
+        {
+            MethodInfo mi = handleConnMsg.GetType().GetMethod(methodName);
+            if(mi == null)
+            {
+                Debug.LogError($"没有处理协议{methodName}的方法！");
+                return;
+            }
+            object[] objs = new object[] {conn,protocol };
+            Debug.Log($"处理连接{conn.GetAddress()}的{name}消息");
+            mi.Invoke(handleConnMsg, objs);
+        }
+        ///角色协议分发
+        else
+        {
+            MethodInfo mi = handlePlayerMsg.GetType().GetMethod(methodName);
+            if(mi==null)
+            {
+                Debug.LogError($"没有处理协议{methodName}的方法！");
+                return;
+            }
+            object[] objs = new object[] {conn.player,protocol };
+            Debug.Log($"处理玩家{conn.player.id}的{name}消息");
+            mi.Invoke(handlePlayerMsg,objs);
+        }
+
+        if (name.ToLower().Equals("heartbeat"))
         {
             conn.lastTickTime = Sys.GetTimeStamp();
         }
