@@ -87,6 +87,8 @@ public class Root : MonoBehaviour {
     /// </summary>
     public void OnRegisterClick()
     {
+
+
         Debug.Log("register");
     }
 }
