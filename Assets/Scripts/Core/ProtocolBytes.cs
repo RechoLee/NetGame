@@ -87,9 +87,9 @@ public class ProtocolBytes : ProtocolBase
     /// <param name="str"></param>
     public void AddString(string str)
     {
-        Int32 len = str.Length;
-        byte[] lenBytes = BitConverter.GetBytes(len);
         byte[] strBytes = Encoding.UTF8.GetBytes(str);
+        Int32 len =strBytes.Length;
+        byte[] lenBytes = BitConverter.GetBytes(len);
 
         if (bytes == null)
             bytes = lenBytes.Concat(strBytes).ToArray();
