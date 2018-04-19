@@ -37,7 +37,7 @@ public class Connection
     /// <summary>
     /// 协议
     /// </summary>
-    public ProtocolBase protocol;
+    public ProtocolBase protocol=new ProtocolBase();
     /// <summary>
     /// 上一次的心跳时间
     /// </summary>
