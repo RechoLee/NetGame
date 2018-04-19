@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Sockets;
 using UnityEngine;
 
@@ -154,6 +155,77 @@ public class Connection
         {
             ProcessData();
         }
+    }
+
+    /// <summary>
+    /// 向服务器发送协议
+    /// </summary>
+    /// <param name="protocol"></param>
+    /// <returns></returns>
+    public bool Send(ProtocolBase protocol)
+    {
+        if(status!=ConnStatus.Connected)
+        {
+            Debug.LogError("请先连接服务器");
+            return false;
+        }
+
+        ///拼接成一个完整的bytes数组
+        byte[] msgBytes = protocol.Encode();
+        byte[] lenBytes = BitConverter.GetBytes(msgBytes.Length);
+        byte[] sendBuff = lenBytes.Concat(msgBytes).ToArray();
+        //发送
+        socket.Send(sendBuff);
+        Debug.Log($"发送{protocol.GetDesc()}消息");
+        return true;
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="protocol"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    public bool Send(ProtocolBase protocol,Action<ProtocolBase> cb)
+    {
+        string protoName = protocol.GetName();
+        return Send(protocol, protoName, cb);
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="protocol"></param>
+    /// <param name="cbName"></param>
+    /// <param name="action"></param>
+    /// <returns></returns>
+    public bool Send(ProtocolBase protocol, string cbName, Action<ProtocolBase> cb)
+    {
+        if (status != ConnStatus.Connected)
+            return false;
+        msgDistribution.AddOnceListener(cbName, cb);
+        return Send(protocol);
+    }
+
+    /// <summary>
+    /// 更新函数
+    /// </summary>
+    public void Update()
+    {
+        //消息分发调用
+        msgDistribution.Update();
+
+        if(status==ConnStatus.Connected)
+        {
+            if(Time.time-lastTickTime>heartBeatTime)
+            {
+                //发送一个心跳包
+                ProtocolBase protocol=new ProtocolBase();//NetMgr.GetHeartBeatProtocol()
+                Send(protocol);
+                lastTickTime = Time.time;
+            }
+        }
+
     }
 }
 
