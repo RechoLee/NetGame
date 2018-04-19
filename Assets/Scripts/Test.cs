@@ -62,7 +62,7 @@ public class Test : MonoBehaviour {
 
     public async void GetPlayerData()
     {
-        var result = await DataMgr.instance.GetPlayerData("recho");
+        var result = await DataMgr.instance.GetPlayerDataAsync("recho");
 
         if (result != null)
         {
@@ -88,7 +88,7 @@ public class Test : MonoBehaviour {
         if(result)
         {
             Debug.Log("更新成功");
-            var result_PD = await DataMgr.instance.GetPlayerData("recho");
+            var result_PD = await DataMgr.instance.GetPlayerDataAsync("recho");
             if(result_PD!=null)
             {
                 Debug.Log($"玩家分数为：{result_PD.score}");
