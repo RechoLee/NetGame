@@ -11,7 +11,7 @@ public class MsgDistribution
     /// <summary>
     /// 每帧处理的消息数量
     /// </summary>
-    public int msgNum;
+    public int msgNum=10;
     /// <summary>
     /// 一个消息列表，储存接收到的协议，处理完成后移除  这里也可以使用队列来实现
     /// </summary>

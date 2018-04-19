@@ -37,7 +37,7 @@ public partial class HandleConnMsg
         string protoName = protocol.GetString(start,ref start);
         string id = protocol.GetString(start, ref start);
         string pw = protocol.GetString(start, ref start);
-        Debug.Log($"收到注册协议---用户名：{id},密码：{pw}");
+        Debug.Log($"收到{protoName}协议---用户名：{id},密码：{pw}");
 
         //构建返回协议
         protocol = new ProtocolBytes();
