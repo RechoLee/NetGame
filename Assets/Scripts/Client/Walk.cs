@@ -213,13 +213,54 @@ public class Walk : MonoBehaviour {
         NetMgr.serverConn.Send(protocol);
     }
 
-    // Use this for initialization
-    void Start () {
-		
-	}
+    /// <summary>
+    /// 玩家移动相关逻辑
+    /// </summary>
+    public void Move()
+    {
+        if (string.IsNullOrEmpty(playerId))
+            return;
+        if (players[playerId] == null)
+            return;
+        if (Time.time - lastMoveTime < 0.1)
+            return;
+        lastMoveTime = Time.time;
+
+        GameObject player = players[playerId];
+
+        //上下左右
+        if(Input.GetKey(KeyCode.UpArrow))
+        {
+            player.transform.position += new Vector3(0, 0, 1f);
+            SendPos();
+        }
+        else if (Input.GetKey(KeyCode.DownArrow))
+        {
+            player.transform.position += new Vector3(0,0,-1f);
+            SendPos();
+        }
+        else if (Input.GetKey(KeyCode.LeftArrow))
+        {
+            player.transform.position += new Vector3(-1f, 0, 0);
+            SendPos();
+        }
+        else if (Input.GetKey(KeyCode.RightArrow))
+        {
+            player.transform.position += new Vector3(1f,0,0);
+            SendPos();
+        }
+        else if (Input.GetKey(KeyCode.Space))
+        {
+            ProtocolBytes proto = new ProtocolBytes();
+            proto.AddString("AddScore");
+            NetMgr.serverConn.Send(proto);
+        }
+
+    }
+
 	
 	// Update is called once per frame
 	void Update () {
-		
+        Move();
 	}
 }
