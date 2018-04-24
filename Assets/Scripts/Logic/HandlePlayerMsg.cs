@@ -56,7 +56,7 @@ public partial class HandlePlayerMsg
         //获取数值
         int start = 0;
         ProtocolBytes protocol = protocolBase as ProtocolBytes;
-        string protoName = protocol.GetName();
+        string protoName = protocol.GetString(start,ref start);
         Pos pos = new Pos();
         pos.X =protocol.GetFloat(start,ref start).Value;
         pos.Y = protocol.GetFloat(start, ref start).Value;
