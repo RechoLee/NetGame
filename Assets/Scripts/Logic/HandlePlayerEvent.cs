@@ -13,7 +13,8 @@ public class HandlePlayerEvent
     /// <param name="player"></param>
     public void OnLogin(Player player)
     {
-        //TODO:
+        //玩家上线
+        Scene.instance.AddPlayer(player.id);
     }
 
     /// <summary>
@@ -22,6 +23,7 @@ public class HandlePlayerEvent
     /// <param name="player"></param>
     public void OnLogout(Player player)
     {
-        //TODO:
+        //玩家下线
+        Scene.instance.DelPlayer(player.id);
     }
 }

@@ -40,4 +40,39 @@ public partial class HandlePlayerMsg
         //保存
         //DataMgr.instance.SavePlayer(player);
     }
+
+    /// <summary>
+    /// 获取玩家列表
+    /// </summary>
+    /// <param name="player"></param>
+    /// <param name="protocolBase"></param>
+    public void MsgGetList(Player player,ProtocolBase protocolBase)
+    {
+        Scene.instance.SendPlayerList(player);
+    }
+
+    public void MsgUpdateInfo(Player player,ProtocolBase protocolBase)
+    {
+        //获取数值
+        int start = 0;
+        ProtocolBytes protocol = protocolBase as ProtocolBytes;
+        string protoName = protocol.GetName();
+        Pos pos = new Pos();
+        pos.X =protocol.GetFloat(start,ref start).Value;
+        pos.Y = protocol.GetFloat(start, ref start).Value;
+        pos.Z = protocol.GetFloat(start, ref start).Value;
+        int score = player.data.score;
+        Scene.instance.UpdateInfo(player.id, pos, score);
+
+        //广播
+        ProtocolBytes proto = new ProtocolBytes();
+        proto.AddString("UpdateInfo");
+        proto.AddString(player.id);
+        proto.AddFloat(pos.X);
+        proto.AddFloat(pos.Y);
+        proto.AddFloat(pos.Z);
+        proto.AddInt(score);
+        ServNet.instance.Broadcast(proto);
+
+    }
 }
