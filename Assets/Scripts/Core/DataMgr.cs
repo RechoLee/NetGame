@@ -12,7 +12,7 @@ using System.IO;
 
 public class DataMgr
 {
-    MySqlConnection sqlConn;
+    MySql.Data.MySqlClient.MySqlConnection sqlConn;
 
     
 
